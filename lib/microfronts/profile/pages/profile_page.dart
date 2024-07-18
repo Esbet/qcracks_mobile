@@ -1,14 +1,12 @@
-import 'dart:convert';
-import 'dart:developer';
 import 'package:flutter/material.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:qcracks_mobile/core/utils/constants.dart';
+import 'package:provider/provider.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
+import '../../../core/providers/auth_provider.dart';
 import '../../../core/routes/resource_icons.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/fonts.dart';
 import '../../auth/pages/login_page.dart';
-import 'package:http/http.dart' as http;
+
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -19,7 +17,6 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  InAppWebViewController? webViewController;
   bool isLoading = true;
   String profileImage = '';
   String userName = '';
@@ -28,36 +25,20 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    // Verificar la cookie al iniciar la página
-    //   checkCookie();
+    // Aquí podrías inicializar algún proceso, si es necesario.
   }
 
-  Future<void> checkCookie() async {
-    CookieManager cookieManager = CookieManager.instance();
-    List<Cookie> cookies =
-        await cookieManager.getCookies(url: WebUri(Constants.homeUrl));
-    Cookie? userDataCookie = cookies.firstWhere(
-      (cookie) => cookie.name == 'userData',
-      orElse: () => Cookie(name: '', value: ''),
-    );
-
-    if (userDataCookie.name.isNotEmpty) {
-      String decodedValue = Uri.decodeComponent(userDataCookie.value);
-      Map<String, dynamic> userData = json.decode(decodedValue);
-      log('Cookie userData: $decodedValue');
-
-      setState(() {
-        profileImage = userData['photo'] ?? '';
-        userName = userData['displayName'] ?? 'Unknown';
-        userEmail = userData['email'] ?? 'Unknown';
-      });
-    } else {
-      log('Cookie userData no encontrada');
-    }
+  @override
+  void dispose() {
+    // Limpia cualquier recurso aquí
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final user = Provider.of<AuthProvider>(context).user;
+    final authProvider = Provider.of<AuthProvider>(context);
+    
     return Scaffold(
       backgroundColor: scaffoldColor,
       body: SafeArea(
@@ -80,9 +61,9 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         ),
                         child: ClipOval(
-                          child: profileImage != ''
+                          child: user?.photoURL != null && user!.photoURL!.isNotEmpty
                               ? Image.network(
-                                  profileImage,
+                                  user.photoURL!,
                                   fit: BoxFit.cover,
                                 )
                               : Image.asset(
@@ -104,7 +85,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          userName,
+                          userName.isNotEmpty ? userName : "Nombre de Usuario",
                           style: textBigBold22(secondColor),
                           softWrap: true,
                           overflow: TextOverflow.visible,
@@ -151,7 +132,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     width: 1.w,
                   ),
                   Text(
-                    userEmail,
+                    user?.email ?? "correo@dominio.com",
                     style: textStyleInput(secondColor),
                   ),
                 ],
@@ -227,37 +208,15 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios),
                 onTap: () async {
-                  final response = await http.get(
-                      Uri.parse('https://qcraks-auth.onrender.com/logout'));
-
-                  if (response.statusCode == 200) {
-                    await webViewController?.webStorage.localStorage.clear();
-                    await CookieManager.instance().deleteAllCookies();
-                  } else {
-                    log('Error al cerrar sesión: ${response.statusCode}');
+                  await authProvider.signOut();
+                  if (mounted) {
+                    // ignore: use_build_context_synchronously
+                    Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => const LoginPage()),
+                      (Route<dynamic> route) => false,
+                    );
                   }
-
-                  // ignore: use_build_context_synchronously
-                  Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
-                      MaterialPageRoute(
-                          builder: (context) => const LoginPage()),
-                      (Route<dynamic> route) => false);
                 },
-              ),
-              Offstage(
-                offstage: true,
-                child: SizedBox(
-                  height: 1.h,
-                  child: InAppWebView(
-                    initialUrlRequest:
-                        URLRequest(url: WebUri(Constants.homeUrl)),
-                    onWebViewCreated: (controller) {
-                      webViewController = controller;
-                      // Verificar la cookie al crear el WebView
-                      checkCookie();
-                    },
-                  ),
-                ),
               ),
             ],
           ),

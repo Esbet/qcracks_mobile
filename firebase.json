@@ -1,0 +1,1 @@
+{"flutter":{"platforms":{"android":{"default":{"projectId":"qcrack-auth","appId":"1:514235033431:android:01ce899df896a8ebd28012","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"qcrack-auth","configurations":{"android":"1:514235033431:android:01ce899df896a8ebd28012","ios":"1:514235033431:ios:bd8d1cfb42bc2745d28012"}}}}}}

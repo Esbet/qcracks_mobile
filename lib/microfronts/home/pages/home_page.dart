@@ -1,13 +1,16 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
+import '../../../core/providers/auth_provider.dart';
 import '../../../core/routes/resource_icons.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/fonts.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import '../../../core/utils/constants.dart';
 import '../js/home_js.dart';
+
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -30,13 +33,13 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
+    webViewController = null;
     super.dispose();
-   
   }
 
   @override
   Widget build(BuildContext context) {
-    
+    final user = Provider.of<AuthProvider>(context).user;
     return Scaffold(
       backgroundColor: scaffoldColor,
       body: SafeArea(
@@ -52,7 +55,7 @@ class _HomePageState extends State<HomePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Hey $name",
+                        "Hey",
                         style: textBigBold22(secondColor),
                       ),
                       Text(
@@ -63,17 +66,19 @@ class _HomePageState extends State<HomePage> {
                   ),
                   Column(
                     children: [
-                     ClipOval(
-                          child: profileImage != ''?   Image.network(
-                            width: 20.w,
-                            profileImage,
-                            fit: BoxFit.cover,
-                          ): Image.asset(
-                            userProfile,
-                            width: 20.w,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
+                      ClipOval(
+                        child: user?.photoURL != null && user!.photoURL!.isNotEmpty
+                            ? Image.network(
+                                width: 20.w,
+                                user.photoURL!,
+                                fit: BoxFit.cover,
+                              )
+                            : Image.asset(
+                                userProfile,
+                                width: 20.w,
+                                fit: BoxFit.cover,
+                              ),
+                      ),
                     ],
                   )
                 ],
@@ -128,53 +133,46 @@ class _HomePageState extends State<HomePage> {
                                 Uri.decodeComponent(userDataCookie.value);
                             log('Cookie userData: $decodedValue');
                             Map<String, dynamic> user = json.decode(decodedValue);
-                            setState(() {
-                               name = user['displayName'].split(' ')[0];
-                               profileImage=user['photo'];
-                            });
-                    
+                            if (mounted) {
+                              setState(() {
+                                name = user['displayName'].split(' ')[0];
+                                profileImage=user['photo'];
+                              });
+                            }
                           } else {
                             log('Cookie userData no encontrada');
                           }
-
-
-                      // if (url.toString().contains("hotel")) {
-                      //   Navigator.pushReplacementNamed(context, DestinationPage.routeName,
-                      //       arguments: url.toString());
-                      //   log('entró');
-                      //   return;
-                      // }
                     },
                     onLoadStart: (controller, url) {
                       log("Started loading: $url");
-                      setState(() {
-                        isLoading = true;
-                      });
+                      if (mounted) {
+                        setState(() {
+                          isLoading = true;
+                        });
+                      }
                     },
                     onLoadStop: (controller, url) {
                       log("Finished loading: $url");
-
                       webViewController!
                           .evaluateJavascript(source: homejsScript)
                           .then((_) {
-                        setState(() {
-                          isLoading = false;
-                        });
+                        if (mounted) {
+                          setState(() {
+                            isLoading = false;
+                          });
+                        }
                       });
                     },
                   ),
                   if (isLoading)
-                    Expanded(
-                        child: Container(
-                      color: scaffoldColor,
-                      child: const Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Center(child: CircularProgressIndicator()),
-                        ],
+                    Positioned.fill(
+                      child: Container(
+                        color: scaffoldColor,
+                        child: const Center(
+                          child: CircularProgressIndicator(),
+                        ),
                       ),
-                    ))
+                    ),
                 ],
               ),
             ),
@@ -185,10 +183,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   void getAllCookies() async {
-  CookieManager cookieManager = CookieManager.instance();
-  final url = WebUri(Constants.homeUrl);
+    CookieManager cookieManager = CookieManager.instance();
+    final url = WebUri(Constants.homeUrl);
 
-  // get cookies
-   await cookieManager.getCookies(url: url);
-}
+    // get cookies
+    await cookieManager.getCookies(url: url);
+  }
 }

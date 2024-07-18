@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
-
-
-import '../../../core/theme/colors.dart';
+import '../../core/menu/menu_bottom_page.dart';
+import '../../core/providers/auth_provider.dart';
 import '../../core/routes/resource_icons.dart';
 import '../../microfronts/auth/pages/login_page.dart';
-
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -17,30 +16,43 @@ class SplashPage extends StatefulWidget {
 }
 
 class _SplashPageState extends State<SplashPage> {
-
   @override
   void initState() {
     super.initState();
     processScreen();
-
   }
-
 
   Future<void> processScreen() async {
-    await Future.delayed(const Duration(seconds: 3));
-    navigation();
+    await Future.delayed(const Duration(seconds: 5));
   }
-
-  void navigation() {
-    Navigator.pushNamed(context, LoginPage.routeName);
-  }
-
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(child: Container(color: whiteColor, child: _mainScreen())),
+      body: SafeArea(
+        child: FutureBuilder(
+          future: processScreen(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return _mainScreen();
+            } else {
+              return Consumer<AuthProvider>(
+                builder: (context, authProvider, child) {
+                  final user = authProvider.user;
+                  if (user != null) {
+                    Future.microtask(() =>
+                        Navigator.pushNamed(context, MenuBottomPage.routeName));
+                  } else {
+                    Future.microtask(() =>
+                        Navigator.pushReplacementNamed(context, LoginPage.routeName));
+                  }
+                  return Container(); // Return an empty container while navigation happens
+                },
+              );
+            }
+          },
+        ),
+      ),
     );
   }
 

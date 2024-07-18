@@ -1,4 +1,4 @@
-package com.example.qcracks_mobile
+package io.quind.qcracks
 
 import io.flutter.embedding.android.FlutterActivity
 

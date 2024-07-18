@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:qcracks_mobile/microfronts/destination/js/destination_js.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 import '../../../core/components/simple_appbar.dart';
@@ -19,7 +19,6 @@ class DestinationPage extends StatefulWidget {
 }
 
 class _DestinationPageState extends State<DestinationPage> {
-  late WebViewController controller;
   InAppWebViewController? webViewController;
   InAppWebViewController? webViewController2;
   bool isLoading = false;

@@ -17,7 +17,6 @@ class MenuBottomPage extends StatefulWidget {
 
 class _MenuBottomPageState extends State<MenuBottomPage> {
   int _selectBottomTabIndex = 1;
-
   bool isvalid = false;
 
   final _controller = PageController();
@@ -25,6 +24,7 @@ class _MenuBottomPageState extends State<MenuBottomPage> {
 
   @override
   void dispose() {
+    _controller.dispose();
     super.dispose();
   }
 
@@ -35,7 +35,6 @@ class _MenuBottomPageState extends State<MenuBottomPage> {
         _controller.jumpToPage(1);
       }
     });
-
     super.didChangeDependencies();
   }
 
@@ -61,27 +60,27 @@ class _MenuBottomPageState extends State<MenuBottomPage> {
   Widget build(BuildContext context) {
     // ignore: deprecated_member_use
     return WillPopScope(
-        onWillPop: _handlerInternalNavigationInTab,
-        child: Scaffold(
-          extendBody: true,
-          backgroundColor: firstColor,
-          // body: _tab(context, _selectBottomTabIndex ),
-          body: PageView(
-              physics: const NeverScrollableScrollPhysics(),
-              controller: _controller,
-              children: [
-                _tab(context, 0),
-                _tab(context, 1),
-                _tab(context, 2),
-              ]),
-          bottomNavigationBar:
-              Container(color: whiteColor, child: _bottomNavBar()),
-        ));
+      onWillPop: _handlerInternalNavigationInTab,
+      child: Scaffold(
+        extendBody: true,
+        backgroundColor: firstColor,
+        body: PageView(
+          physics: const NeverScrollableScrollPhysics(),
+          controller: _controller,
+          children: [
+            _tab(context, 0),
+            _tab(context, 1),
+            _tab(context, 2),
+          ],
+        ),
+        bottomNavigationBar:
+          Container(color: whiteColor, child: _bottomNavBar()),
+      ),
+    );
   }
 
   Future<bool> _handlerInternalNavigationInTab() async {
-    final popped =
-        await navigators[_selectBottomTabIndex]!.currentState!.maybePop();
+    final popped = await navigators[_selectBottomTabIndex]!.currentState!.maybePop();
     return !popped;
   }
 
@@ -91,11 +90,7 @@ class _MenuBottomPageState extends State<MenuBottomPage> {
       index: _selectBottomTabIndex,
       height: 60.0,
       items: const <Widget>[
-        Icon(
-          Icons.favorite,
-          size: 30,
-          color: secondColor,
-        ),
+        Icon(Icons.favorite, size: 30, color: secondColor),
         Icon(Icons.home, size: 30, color: secondColor),
         Icon(Icons.person, size: 30, color: secondColor),
       ],
@@ -117,7 +112,6 @@ class _MenuBottomPageState extends State<MenuBottomPage> {
       setState(() {
         _selectBottomTabIndex = index;
       });
-
       _controller.jumpToPage(index);
     }
   }
@@ -140,6 +134,4 @@ class _MenuBottomPageState extends State<MenuBottomPage> {
       );
     }
   }
-
-  ///popup to send code
 }
