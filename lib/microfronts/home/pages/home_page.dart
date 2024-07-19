@@ -12,6 +12,7 @@ import '../../../core/utils/constants.dart';
 import '../js/home_js.dart';
 
 
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
   static const routeName = "/";
@@ -35,6 +36,35 @@ class _HomePageState extends State<HomePage> {
   void dispose() {
     webViewController = null;
     super.dispose();
+  }
+
+void injectCookie(user) async {
+    String userInfo = json.encode({
+      'displayName': "Estiven Betancur",
+      'photoURL': user.photoURL,
+      'email': user.email,
+    });
+
+    String encodedUserInfo = Uri.encodeComponent(userInfo);
+    Cookie cookie = Cookie(name:'user_info')
+      ..path = '/'
+      ..value= encodedUserInfo
+      ..isHttpOnly = false
+      ; 
+
+    await CookieManager.instance().setCookie(
+      url: WebUri(Constants.homeUrl),
+      name: cookie.name,
+      value: cookie.value,
+      domain:  'qcrack-auth.web.app',
+      path: cookie.path.toString(),
+      isHttpOnly: cookie.isHttpOnly,
+      isSecure: cookie.isSecure,
+    );
+
+    webViewController?.loadUrl(
+      urlRequest: URLRequest(url: WebUri(Constants.homeUrl)),
+    );
   }
 
   @override
@@ -99,9 +129,6 @@ class _HomePageState extends State<HomePage> {
                       supportMultipleWindows: true,
                       transparentBackground: true,
                     ),
-                    initialUrlRequest: URLRequest(
-                      url: WebUri(Constants.homeUrl),
-                    ),
                     shouldOverrideUrlLoading:
                         (controller, navigationAction) async {
                       // any code;
@@ -109,39 +136,19 @@ class _HomePageState extends State<HomePage> {
                     },
                     onWebViewCreated: (controller) {
                       webViewController = controller;
-                      // Añade el JavaScriptHandler
+                      // Add JavaScriptHandler
                       webViewController!.addJavaScriptHandler(
                         handlerName: 'flutterHandler',
                         callback: (args) {
                           log('Evento recibido de JavaScript: $args');
-                          // Puedes hacer algo con los datos recibidos desde JavaScript
                           return null;
                         },
                       );
+
+                       injectCookie(user);
                     },
                     onUpdateVisitedHistory: (controller, url, androidIsReload) async{
-                      CookieManager cookieManager =
-                              CookieManager.instance();
-                          // get cookies
-                          List<Cookie> cookies =
-                              await cookieManager.getCookies(url: url!);
-                          Cookie? userDataCookie = cookies.firstWhere(
-                              (cookie) => cookie.name == 'userData',
-                              orElse: () => Cookie(name: ''));
-                          if (userDataCookie.name.isNotEmpty) {
-                            String decodedValue =
-                                Uri.decodeComponent(userDataCookie.value);
-                            log('Cookie userData: $decodedValue');
-                            Map<String, dynamic> user = json.decode(decodedValue);
-                            if (mounted) {
-                              setState(() {
-                                name = user['displayName'].split(' ')[0];
-                                profileImage=user['photo'];
-                              });
-                            }
-                          } else {
-                            log('Cookie userData no encontrada');
-                          }
+                     
                     },
                     onLoadStart: (controller, url) {
                       log("Started loading: $url");
@@ -180,13 +187,5 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
-  }
-
-  void getAllCookies() async {
-    CookieManager cookieManager = CookieManager.instance();
-    final url = WebUri(Constants.homeUrl);
-
-    // get cookies
-    await cookieManager.getCookies(url: url);
   }
 }
