@@ -9,9 +9,6 @@ import '../../../core/theme/colors.dart';
 import '../../../core/theme/fonts.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import '../../../core/utils/constants.dart';
-import '../js/home_js.dart';
-
-
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -25,7 +22,7 @@ class _HomePageState extends State<HomePage> {
   InAppWebViewController? webViewController;
   bool isLoading = false;
   String profileImage = '';
-  String name='';
+  String name = '';
 
   @override
   void initState() {
@@ -38,7 +35,7 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-void injectCookie(user) async {
+  void injectCookie(user) async {
     String userInfo = json.encode({
       'displayName': "Estiven Betancur",
       'photoURL': user.photoURL,
@@ -46,17 +43,16 @@ void injectCookie(user) async {
     });
 
     String encodedUserInfo = Uri.encodeComponent(userInfo);
-    Cookie cookie = Cookie(name:'user_info')
+    Cookie cookie = Cookie(name: 'user_info')
       ..path = '/'
-      ..value= encodedUserInfo
-      ..isHttpOnly = false
-      ; 
+      ..value = encodedUserInfo
+      ..isHttpOnly = false;
 
     await CookieManager.instance().setCookie(
       url: WebUri(Constants.homeUrl),
       name: cookie.name,
       value: cookie.value,
-      domain:  'qcrack-auth.web.app',
+      domain: 'qcrack-auth.web.app',
       path: cookie.path.toString(),
       isHttpOnly: cookie.isHttpOnly,
       isSecure: cookie.isSecure,
@@ -97,17 +93,18 @@ void injectCookie(user) async {
                   Column(
                     children: [
                       ClipOval(
-                        child: user?.photoURL != null && user!.photoURL!.isNotEmpty
-                            ? Image.network(
-                                width: 20.w,
-                                user.photoURL!,
-                                fit: BoxFit.cover,
-                              )
-                            : Image.asset(
-                                userProfile,
-                                width: 20.w,
-                                fit: BoxFit.cover,
-                              ),
+                        child:
+                            user?.photoURL != null && user!.photoURL!.isNotEmpty
+                                ? Image.network(
+                                    width: 20.w,
+                                    user.photoURL!,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Image.asset(
+                                    userProfile,
+                                    width: 20.w,
+                                    fit: BoxFit.cover,
+                                  ),
                       ),
                     ],
                   )
@@ -145,11 +142,10 @@ void injectCookie(user) async {
                         },
                       );
 
-                       injectCookie(user);
+                      injectCookie(user);
                     },
-                    onUpdateVisitedHistory: (controller, url, androidIsReload) async{
-                     
-                    },
+                    onUpdateVisitedHistory:
+                        (controller, url, androidIsReload) async {},
                     onLoadStart: (controller, url) {
                       log("Started loading: $url");
                       if (mounted) {
@@ -160,15 +156,12 @@ void injectCookie(user) async {
                     },
                     onLoadStop: (controller, url) {
                       log("Finished loading: $url");
-                      webViewController!
-                          .evaluateJavascript(source: homejsScript)
-                          .then((_) {
-                        if (mounted) {
-                          setState(() {
-                            isLoading = false;
-                          });
-                        }
-                      });
+
+                      if (mounted) {
+                        setState(() {
+                          isLoading = false;
+                        });
+                      }
                     },
                   ),
                   if (isLoading)

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import '../../microfronts/auth/pages/login_page.dart';
-import '../../microfronts/destination/pages/destination_page.dart';
 import '../../microfronts/favorites/pages/favorites_page.dart';
 import '../../microfronts/home/pages/home_page.dart';
 import '../../microfronts/profile/pages/profile_page.dart';
@@ -48,11 +47,6 @@ class PageClassGenerator {
         builder = (context) => const HomePage();
         break;
 
-      case DestinationPage.routeName:
-        builder = (context) => DestinationPage(
-              route: routeSettings.arguments as String,
-            );
-        break;
       default:
         builder = (context) => const Material(
               child: Center(child: Text("Todavia no se ha aplicado")),
